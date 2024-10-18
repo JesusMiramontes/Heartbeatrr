@@ -1,72 +1,77 @@
 package xyz.miramontes.heartbeatrr.service;
 
-import java.util.ArrayList;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
 @Service
+@Slf4j
 public class HealthCheckService {
 
     @Value("${connection.timeout}")
     private int connectionTimeout;
 
-    @Value("${read.timeout}")
-    private int readTimeout;
+    @Value("${retry.backoff.delay}")
+    public long retryBackoffDelay;
 
     @Value("#{'${services}'.split(',')}")
     private List<String> services;
 
-    public void checkServices() {
-        List<String> success = new ArrayList<>();
-        List<String> fail = new ArrayList<>();
-
-        for (String endpoint : services) {
-            ResponseEntity<String> checkedEndpoint = checkEndpoint(endpoint);
-            if (checkedEndpoint.getStatusCode().isSameCodeAs(HttpStatus.SERVICE_UNAVAILABLE)) {
-                fail.add(endpoint + ": " + checkedEndpoint.getBody());
-            } else {
-                success.add(endpoint + ": " + checkedEndpoint.getBody());
-            }
-        }
-
-        System.out.println("fail = " + fail.toString());
-        System.out.println("success = " + success.toString());
-    }
-
-    private ResponseEntity<String> checkEndpoint(String endpointUrl) {
+    @Retryable(
+            retryFor = {ResourceAccessException.class},
+            maxAttempts = 3,
+            backoff = @Backoff(delayExpression = "#{@healthCheckService.retryBackoffDelay}"))
+    public ResponseEntity<String> checkEndpoint(String endpointUrl) {
         try {
-            RestTemplate customRestTemplate =
-                    getRestTemplateWithTimeout(connectionTimeout, readTimeout);
+            RestTemplate restTemplate =
+                    getRestTemplateWithTimeout(connectionTimeout); // 3 seconds timeout
+            ResponseEntity<String> response = restTemplate.getForEntity(endpointUrl, String.class);
 
-            // Make the GET request
-            ResponseEntity<String> response =
-                    customRestTemplate.getForEntity(endpointUrl, String.class);
-
-            // Return the HTTP status
-            return new ResponseEntity<>(
-                    "Response status: " + response.getStatusCode(), response.getStatusCode());
+            return onSuccess(endpointUrl, response);
 
         } catch (ResourceAccessException e) {
-            return new ResponseEntity<>(
-                    "Unable to connect: " + e.getMessage(), HttpStatus.SERVICE_UNAVAILABLE);
-        } catch (HttpClientErrorException e) {
-            // Handle connection failures or other exceptions
-            return new ResponseEntity<>("Unable to connect: " + e.getMessage(), e.getStatusCode());
+            onFail(endpointUrl, e);
+            throw e; // Re-throw the exception to trigger retry
         }
+    }
+
+    private static void onFail(String endpointUrl, ResourceAccessException e) {
+        log.error("Unable to connect to {}: {}", endpointUrl, e.getMessage());
+    }
+
+    private static ResponseEntity<String> onSuccess(
+            String endpointUrl, ResponseEntity<String> response) {
+        log.info("Received status {} from {}", response.getStatusCode(), endpointUrl);
+
+        // Return success, regardless of the status code
+        return new ResponseEntity<>(
+                "Service is alive with status: " + response.getStatusCode(),
+                response.getStatusCode());
     }
 
     // Method to configure RestTemplate with timeouts
-    private RestTemplate getRestTemplateWithTimeout(int connectionTimeout, int readTimeout) {
+    private RestTemplate getRestTemplateWithTimeout(int timeout) {
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
-        factory.setConnectTimeout(connectionTimeout); // Set connection timeout
-        factory.setReadTimeout(readTimeout); // Set read timeout
+        factory.setConnectTimeout(timeout); // Set connection timeout
+        factory.setReadTimeout(timeout); // Set read timeout
         return new RestTemplate(factory);
+    }
+
+    // Recover method to handle retries after maxAttempts has been reached
+    @Recover
+    public ResponseEntity<String> recover(ResourceAccessException e, String endpointUrl) {
+        log.error("Failed to connect to {} after retries: {}", endpointUrl, e.getMessage());
+        return new ResponseEntity<>(
+                "Failed to connect to " + endpointUrl + " after retries",
+                HttpStatus.SERVICE_UNAVAILABLE);
     }
 }
