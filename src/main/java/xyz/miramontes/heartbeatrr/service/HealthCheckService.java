@@ -9,8 +9,8 @@ import org.springframework.stereotype.Service;
 @Service
 @Slf4j
 public class HealthCheckService {
-    @Value("#{'${services}'.split(',')}")
-    private List<String> services;
+    @Value("#{'${heartbeatrr.services.urls}'.split(',')}")
+    private List<String> servicesUrls;
 
     private final RetryableHealthCheckService retryableHealthCheckService;
 
@@ -20,7 +20,7 @@ public class HealthCheckService {
 
     // Loop through all services and check each one
     public void checkAllServices() {
-        for (String service : services) {
+        for (String service : servicesUrls) {
             log.info("Checking service at URL: {}", service);
             ResponseEntity<String> result = retryableHealthCheckService.checkEndpoint(service);
             log.info("Result for service {}: {}", service, result.getBody());

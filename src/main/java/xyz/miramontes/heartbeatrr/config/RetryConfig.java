@@ -17,16 +17,16 @@ public class RetryConfig {
     /**
      * Creates a {@link RetryTemplate} bean to be used for retryable operations.
      *
-     * @param maxAttempts the maximum number of retry attempts
-     * @param backoffDelay the delay between retries (in milliseconds)
+     * @param retryMaxAttempts the maximum number of retry attempts
+     * @param retryBackoffDelay the delay between retries (in milliseconds)
      * @return a fully configured {@link RetryTemplate} instance
      */
     @Bean
     public RetryTemplate retryTemplate(
-            @Value("${retry.max.attempts}") int maxAttempts,
-            @Value("${retry.backoff.delay}") long backoffDelay) {
+            @Value("${heartbeatrr.retry.max.attempts}") int retryMaxAttempts,
+            @Value("${heartbeatrr.retry.backoff.delay}") long retryBackoffDelay) {
 
-        return configureRetryTemplate(maxAttempts, backoffDelay);
+        return configureRetryTemplate(retryMaxAttempts, retryBackoffDelay);
     }
 
     /**

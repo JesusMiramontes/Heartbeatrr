@@ -21,7 +21,7 @@ public class RetryableHealthCheckService {
 
     private final RetryTemplate retryTemplate;
 
-    @Value("${connection.timeout}")
+    @Value("${heartbeatrr.connection.timeout}")
     private int connectionTimeout;
 
     public RetryableHealthCheckService(RetryTemplate retryTemplate) {
