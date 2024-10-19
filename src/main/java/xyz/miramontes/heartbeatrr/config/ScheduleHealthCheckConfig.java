@@ -1,5 +1,6 @@
 package xyz.miramontes.heartbeatrr.config;
 
+import java.io.IOException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -24,7 +25,7 @@ public class ScheduleHealthCheckConfig {
      * application properties.
      */
     @Scheduled(fixedDelayString = "${heartbeatrr.healthcheck.schedule.delay}")
-    private void checkAllServicesOnSchedule() {
+    private void checkAllServicesOnSchedule() throws IOException {
         log.info("Starting job on schedule");
         healthCheckService.checkAllServices();
         log.info("Job finished");
