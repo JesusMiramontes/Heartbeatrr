@@ -59,7 +59,7 @@ public class RetryableHealthCheckService {
     /** Handles the case when the service is successfully reachable. */
     private ResponseEntity<String> handleSuccess(
             String endpointUrl, ResponseEntity<String> response) {
-        log.info("Received status {} from {}", response.getStatusCode(), endpointUrl);
+        log.debug("Received status {} from {}", response.getStatusCode(), endpointUrl);
         return new ResponseEntity<>(
                 "Service is alive with status: " + response.getStatusCode(),
                 response.getStatusCode());
@@ -73,7 +73,7 @@ public class RetryableHealthCheckService {
     /** Handles client-side errors (4xx responses) from the service. */
     private ResponseEntity<String> handleClientError(
             String endpointUrl, HttpClientErrorException exception) {
-        log.warn("Client error on {}: {}", endpointUrl, exception.getStatusCode());
+        log.debug("Client error on {}: {}", endpointUrl, exception.getStatusCode());
         return new ResponseEntity<>(
                 "Service responded with error: " + exception.getStatusCode(),
                 exception.getStatusCode());

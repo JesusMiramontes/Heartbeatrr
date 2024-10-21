@@ -54,6 +54,8 @@ public class HealthCheckService {
         // If there are any down services, send a notification
         if (!downServices.isEmpty()) {
             sendAlertForDownServices(downServices);
+        } else {
+            log.info("All services are alive");
         }
     }
 
