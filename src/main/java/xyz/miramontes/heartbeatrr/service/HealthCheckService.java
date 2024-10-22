@@ -1,5 +1,6 @@
 package xyz.miramontes.heartbeatrr.service;
 
+import jakarta.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -9,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import xyz.miramontes.heartbeatrr.util.UtilMethods;
 
 @Service
 @Slf4j
@@ -26,6 +28,12 @@ public class HealthCheckService {
             DiscordService discordService) {
         this.retryableHealthCheckService = retryableHealthCheckService;
         this.discordService = discordService;
+    }
+
+    @PostConstruct
+    private void sendInitialDiscordNotification() throws IOException {
+        discordService.sendDiscordAlert(
+                "These services will be monitored: " + UtilMethods.convertMapToString(serviceUrls));
     }
 
     /**

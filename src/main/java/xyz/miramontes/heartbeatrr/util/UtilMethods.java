@@ -1,5 +1,8 @@
 package xyz.miramontes.heartbeatrr.util;
 
+import java.util.Map;
+import java.util.stream.Collectors;
+
 public class UtilMethods {
     private UtilMethods() {}
 
@@ -21,5 +24,11 @@ public class UtilMethods {
         if (seconds > 0) output.append(seconds).append(seconds > 1 ? " seconds" : " second");
 
         return output.toString();
+    }
+
+    public static String convertMapToString(Map<String, String> map) {
+        return map.entrySet().stream()
+                .map(entry -> entry.getKey() + "(" + entry.getValue() + ")")
+                .collect(Collectors.joining(", "));
     }
 }
