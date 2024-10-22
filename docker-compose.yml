@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  heartbeatrr:
+    # The name of the Docker image to use for the service. In this case, the image is hosted on Docker Hub under the user "moonscape1840".
+    image: moonscape1840/heartbeatrr:latest
+
+    # The container name for this service. It can be useful to give it a name for easier reference.
+    container_name: heartbeatrr
+
+    # Environment variables are passed to the container to configure the application.
+    environment:
+      # HTTP connection timeout in milliseconds. This value determines how long to wait for a connection to be established before timing out.
+      - HEARTBEATRR_CONNECTION_TIMEOUT=3000
+
+      # The delay between retry attempts in milliseconds. This value sets how long the application waits before retrying a failed service check.
+      - HEARTBEATRR_RETRY_BACKOFF_DELAY=1000
+
+      # The maximum number of retry attempts for failed health checks. After reaching this number, the application will stop retrying.
+      - HEARTBEATRR_RETRY_MAX_ATTEMPTS=3
+
+      # Health check scheduling delay in seconds. This sets how often (in seconds) the application will check the health of its services.
+      - HEARTBEATRR_HEALTHCHECK_SCHEDULE_DELAY=1800  # 1800 seconds = 30 minutes
+
+      # A list of services and their URLs for health checking. The format is a JSON-style object where each key is the service name and each value is the service URL.
+      # You can modify this to include additional services by adding more key-value pairs, for example: {"Google":"http://google.com", "Yahoo":"http://yahoo.com"}.
+      - >
+        HEARTBEATRR_SERVICES_URLS={"Google":"http://google.com"}
+
+      # Discord webhook URL for sending notifications when services are down. Replace this with your Discord webhook URL to enable notifications.
+      # For example: https://discord.com/api/webhooks/your-webhook-id
+      - HEARTBEATRR_DISCORD_SERVICE_WEBHOOK=
+
+    # This setting ensures the container will always restart unless explicitly stopped. It helps keep your service running even after crashes or reboots.
+    restart: unless-stopped
