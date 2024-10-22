@@ -33,7 +33,8 @@ public class HealthCheckService {
     @PostConstruct
     private void sendInitialDiscordNotification() throws IOException {
         discordService.sendDiscordAlert(
-                "These services will be monitored: " + UtilMethods.convertMapToString(serviceUrls));
+                "These services will be monitored:\n"
+                        + UtilMethods.convertMapToString(serviceUrls));
     }
 
     /**

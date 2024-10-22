@@ -8,8 +8,7 @@ import xyz.miramontes.heartbeatrr.service.DiscordService;
 @SpringBootTest
 class HeartbeatrrApplicationTests {
 
-    @MockBean
-    private DiscordService discordService;
+    @MockBean private DiscordService discordService;
 
     @Test
     void contextLoads() {}
