@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>xyz.miramontes</groupId>
 	<artifactId>heartbeatrr</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>1.0.0</version>
 	<name>heartbeatrr</name>
 	<description>Checks if the services are alive</description>
 	<url/>
